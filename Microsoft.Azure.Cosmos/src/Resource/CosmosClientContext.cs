@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Cosmos
     using System.Threading.Tasks;
     using Microsoft.Azure.Cosmos.Handlers;
     using Microsoft.Azure.Cosmos.Tracing;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
     using Telemetry;
 
@@ -35,6 +36,8 @@ namespace Microsoft.Azure.Cosmos
         internal abstract CosmosClientOptions ClientOptions { get; }
 
         internal abstract string UserAgent { get; }
+
+        internal abstract ClientConfigurationManager ClientConfigurationManager { get; }
 
         internal abstract BatchAsyncContainerExecutor GetExecutorForContainer(
             ContainerInternal container);

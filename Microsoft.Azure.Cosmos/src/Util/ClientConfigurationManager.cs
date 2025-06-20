@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Cosmos.Util
     using System.Text;
     using Newtonsoft.Json.Linq;
 
-    internal class ClientConfigurationManager : IClientConfigurationManager
+    internal class ClientConfigurationManager : ClientConfigurationManager
     {
         /// <summary>
         /// Used to retrieve configuration values for the client.
@@ -22,12 +22,7 @@ namespace Microsoft.Azure.Cosmos.Util
         /// </summary>
         private static readonly Func<string, string> DefaultConfigurationDelegate = Environment.GetEnvironmentVariable;
 
-        internal ClientConfigurationManager()
-            : this(DefaultConfigurationDelegate)
-        {
-        }
-
-        internal ClientConfigurationManager(Func<string, string> configurationDelegate)
+        internal ClientConfigurationManager(Func<string, string> configurationDelegate = null)
         {
             this.ConfigurationDelegate = configurationDelegate ?? DefaultConfigurationDelegate;
         }

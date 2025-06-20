@@ -26,6 +26,7 @@ namespace Microsoft.Azure.Cosmos
     using Microsoft.Azure.Cosmos.Telemetry;
     using Microsoft.Azure.Cosmos.Tracing;
     using Microsoft.Azure.Cosmos.Tracing.TraceData;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Collections;
@@ -218,6 +219,9 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="authKey">
         /// The list of Permission objects to use to create the client.
         /// </param>
+        /// <param name="clientConfigurationManager">
+        /// Configuration manager for the client.
+        /// </param>
         /// <param name="connectionPolicy">
         /// (Optional) The connection policy for the client. If none is passed, the default is used <see cref="ConnectionPolicy"/>
         /// </param>
@@ -239,7 +243,8 @@ namespace Microsoft.Azure.Cosmos
         public DocumentClient(Uri serviceEndpoint,
                               SecureString authKey,
                               ConnectionPolicy connectionPolicy = null,
-                              Documents.ConsistencyLevel? desiredConsistencyLevel = null)
+                              Documents.ConsistencyLevel? desiredConsistencyLevel = null,
+                              ClientConfigurationManager clientConfigurationManager = null)
         {
             if (authKey == null)
             {
@@ -255,8 +260,9 @@ namespace Microsoft.Azure.Cosmos
             this.initTaskCache = new AsyncCacheNonBlocking<string, bool>(
                 cancellationToken: this.cancellationTokenSource.Token,
                 enableAsyncCacheExceptionNoSharing: this.enableAsyncCacheExceptionNoSharing);
+            clientConfigurationManager ??= new ClientConfigurationManager();
             this.isReplicaAddressValidationEnabled = ConfigurationManager.IsReplicaAddressValidationEnabled(connectionPolicy);
-            this.isThinClientEnabled = ConfigurationManager.IsThinClientEnabled(defaultValue: false);
+            this.isThinClientEnabled = clientConfigurationManager.IsThinClientEnabled(defaultValue: false);
         }
 
         /// <summary>
@@ -441,6 +447,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="serviceEndpoint">The service endpoint to use to create the client.</param>
         /// <param name="cosmosAuthorization">The cosmos authorization for the client.</param>
         /// <param name="sendingRequestEventArgs"> The event handler to be invoked before the request is sent.</param>
+        /// <param name="clientConfigurationManager">Configuration manager for the client.</param>
         /// <param name="receivedResponseEventArgs"> The event handler to be invoked after a response has been received.</param>
         /// <param name="connectionPolicy">(Optional) The connection policy for the client.</param>
         /// <param name="desiredConsistencyLevel">(Optional) The default consistency policy for client operations.</param>
@@ -471,6 +478,7 @@ namespace Microsoft.Azure.Cosmos
         internal DocumentClient(Uri serviceEndpoint,
                               AuthorizationTokenProvider cosmosAuthorization,
                               EventHandler<SendingRequestEventArgs> sendingRequestEventArgs,
+                              ClientConfigurationManager clientConfigurationManager,
                               ConnectionPolicy connectionPolicy = null,
                               Documents.ConsistencyLevel? desiredConsistencyLevel = null,
                               JsonSerializerSettings serializerSettings = null,
@@ -514,7 +522,7 @@ namespace Microsoft.Azure.Cosmos
                 enableAsyncCacheExceptionNoSharing: this.enableAsyncCacheExceptionNoSharing);
             this.chaosInterceptorFactory = chaosInterceptorFactory;
             this.chaosInterceptor = chaosInterceptorFactory?.CreateInterceptor(this);
-            this.isThinClientEnabled = ConfigurationManager.IsThinClientEnabled(defaultValue: false);
+            this.isThinClientEnabled = clientConfigurationManager.IsThinClientEnabled(defaultValue: false);
 
             this.Initialize(
                 serviceEndpoint: serviceEndpoint,

@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Text;
 
-    internal interface IClientConfigurationManager
+    internal interface ClientConfigurationManager
     {
         public T GetConfiguration<T>(string variable, T defaultValue);
     }
