@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Cosmos.Util
     using System.Text;
     using Newtonsoft.Json.Linq;
 
-    internal class ClientConfigurationManager : ClientConfigurationManager
+    internal class ClientConfigurationManager : IClientConfigurationManager
     {
         /// <summary>
         /// Used to retrieve configuration values for the client.

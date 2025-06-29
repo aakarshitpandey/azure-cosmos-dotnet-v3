@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Cosmos
 
     internal static class ConfigurationManagerExtension
     {
-        public static int GetMaxRetriesInLocalRegionWhenRemoteRegionPreferred(this ClientConfigurationManager clientConfigurationManager)
+        public static int GetMaxRetriesInLocalRegionWhenRemoteRegionPreferred(this IClientConfigurationManager clientConfigurationManager)
         {
             return Math.Max(
                 clientConfigurationManager
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Cosmos
                 ConfigurationKeys.MinMaxRetriesInLocalRegionWhenRemoteRegionPreferred);
         }
 
-        public static TimeSpan GetMinRetryTimeInLocalRegionWhenRemoteRegionPreferred(this ClientConfigurationManager clientConfigurationManager)
+        public static TimeSpan GetMinRetryTimeInLocalRegionWhenRemoteRegionPreferred(this IClientConfigurationManager clientConfigurationManager)
         {
             return TimeSpan.FromMilliseconds(Math.Max(
                 clientConfigurationManager
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="connectionPolicy">An instance of <see cref="ConnectionPolicy"/> containing the client options.</param>
         /// <returns>A boolean flag indicating if replica validation is enabled.</returns>
         public static bool IsReplicaAddressValidationEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             ConnectionPolicy connectionPolicy)
         {
             if (connectionPolicy != null
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">A boolean field containing the default value for partition level failover.</param>
         /// <returns>A boolean flag indicating if partition level failover is enabled.</returns>
         public static bool IsPartitionLevelFailoverEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">A boolean field containing the default value for thin client mode.</param>
         /// <returns>A boolean flag indicating if thin client mode is enabled.</returns>
         public static bool IsThinClientEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">A boolean field containing the default value for partition level circuit breaker.</param>
         /// <returns>A boolean flag indicating if partition level circuit breaker is enabled.</returns>
         public static bool IsPartitionLevelCircuitBreakerEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">An integer containing the default value for the refresh interval in seconds.</param>
         /// <returns>An integer representing the refresh interval in seconds.</returns>
         public static int GetStalePartitionUnavailabilityRefreshIntervalInSeconds(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             int defaultValue)
         {
             return clientConfigurationManager
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">An integer containing the default unavailability duration in seconds.</param>
         /// <returns>An integer representing the allowed partition unavailability duration in seconds.</returns>
         public static int GetAllowedPartitionUnavailabilityDurationInSeconds(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             int defaultValue)
         {
             return clientConfigurationManager
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">An integer containing the default value for the consecutive failure count.</param>
         /// <returns>An integer representing the consecutive failure count for reads.</returns>
         public static int GetCircuitBreakerConsecutiveFailureCountForReads(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             int defaultValue)
         {
             return clientConfigurationManager
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="defaultValue">An integer containing the default value for the consecutive failure count.</param>
         /// <returns>An integer representing the consecutive failure count for writes.</returns>
         public static int GetCircuitBreakerConsecutiveFailureCountForWrites(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             int defaultValue)
         {
             return clientConfigurationManager
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.Cosmos
         /// Gets the boolean value indicating whether optimistic direct execution is enabled based on the environment variable override.
         /// </summary>
         public static bool IsOptimisticDirectExecutionEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.Cosmos
         /// based on the environment variable override.
         /// </summary>
         public static bool IsHybridSearchQueryPlanOptimizationDisabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.Cosmos
         /// based on the environment variable override.
         /// </summary>
         public static bool IsDistributedQueryGatewayModeEnabled(
-            this ClientConfigurationManager clientConfigurationManager,
+            this IClientConfigurationManager clientConfigurationManager,
             bool defaultValue)
         {
             return clientConfigurationManager
@@ -230,7 +230,7 @@ namespace Microsoft.Azure.Cosmos
         /// This method will eventually be removed once binary encoding is enabled by default for both preview and GA.
         /// </summary>
         /// <returns>A boolean flag indicating if binary encoding is enabled.</returns>
-        public static bool IsBinaryEncodingEnabled(this ClientConfigurationManager clientConfigurationManager)
+        public static bool IsBinaryEncodingEnabled(this IClientConfigurationManager clientConfigurationManager)
         {
             bool defaultValue = false;
             return clientConfigurationManager
@@ -244,7 +244,7 @@ namespace Microsoft.Azure.Cosmos
         /// Default: false
         /// </summary>
         /// <returns>A boolean flag indicating if channel multiplexing is enabled.</returns>
-        public static bool IsTcpChannelMultiplexingEnabled(this ClientConfigurationManager clientConfigurationManager)
+        public static bool IsTcpChannelMultiplexingEnabled(this IClientConfigurationManager clientConfigurationManager)
         {
             return clientConfigurationManager
                     .GetConfiguration(

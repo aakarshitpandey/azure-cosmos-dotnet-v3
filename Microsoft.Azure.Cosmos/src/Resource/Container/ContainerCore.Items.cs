@@ -933,12 +933,12 @@ namespace Microsoft.Azure.Cosmos
             // This is because when triggers are present in the request options, the backend will pass the stream to the javascript
             // engine, which does not support binary encoded content at the moment. For long term, since trigger operations won't
             // be supported in the backend, avoiding the binary encoding in such cases, will be the ideal approach.
-            if (ConfigurationManager.IsBinaryEncodingEnabled()
+            if (this.ClientContext.ClientConfigurationManager.IsBinaryEncodingEnabled()
                 && !ContainerCore.IsTriggerPresentInRequestOptions(requestOptions)
                 && !this.ClientContext.ClientOptions.EnableStreamPassThrough)
             {
                 streamPayload = CosmosSerializationUtil.TrySerializeStreamToTargetFormat(
-                    targetSerializationFormat: ContainerCore.GetTargetRequestSerializationFormat(),
+                    targetSerializationFormat: this.GetTargetRequestSerializationFormat(),
                     inputStream: streamPayload == null ? null : await StreamExtension.AsClonableStreamAsync(
                         mediaStream: streamPayload,
                         allowUnsafeDataAccess: true));
@@ -1308,9 +1308,9 @@ namespace Microsoft.Azure.Cosmos
             return default;
         }
 
-        private static JsonSerializationFormat GetTargetRequestSerializationFormat()
+        private JsonSerializationFormat GetTargetRequestSerializationFormat()
         {
-            return ConfigurationManager.IsBinaryEncodingEnabled()
+            return this.ClientContext.ClientConfigurationManager.IsBinaryEncodingEnabled()
                 ? JsonSerializationFormat.Binary
                 : JsonSerializationFormat.Text;
         }

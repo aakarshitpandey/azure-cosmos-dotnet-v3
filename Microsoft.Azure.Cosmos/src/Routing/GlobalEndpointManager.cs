@@ -15,6 +15,7 @@ namespace Microsoft.Azure.Cosmos.Routing
     using System.Threading.Tasks;
     using Microsoft.Azure.Cosmos.Common;
     using Microsoft.Azure.Cosmos.Core.Trace;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
     using Newtonsoft.Json.Linq;
 
@@ -39,6 +40,7 @@ namespace Microsoft.Azure.Cosmos.Routing
         private readonly int backgroundRefreshLocationTimeIntervalInMS = GlobalEndpointManager.DefaultBackgroundRefreshLocationTimeIntervalInMS;
         private readonly object backgroundAccountRefreshLock = new object();
         private readonly object isAccountRefreshInProgressLock = new object();
+        private readonly IClientConfigurationManager configurationManager;
         private bool isAccountRefreshInProgress = false;
         private bool isBackgroundAccountRefreshActive = false;
         private DateTime LastBackgroundRefreshUtc = DateTime.MinValue;
@@ -46,6 +48,7 @@ namespace Microsoft.Azure.Cosmos.Routing
         public GlobalEndpointManager(
             IDocumentClientInternal owner,
             ConnectionPolicy connectionPolicy,
+            IClientConfigurationManager configurationManager,
             bool enableAsyncCacheExceptionNoSharing = true)
         {
             this.locationCache = new LocationCache(
@@ -58,9 +61,10 @@ namespace Microsoft.Azure.Cosmos.Routing
             this.owner = owner;
             this.defaultEndpoint = owner.ServiceEndpoint;
             this.connectionPolicy = connectionPolicy;
-
+            
             this.connectionPolicy.PreferenceChanged += this.OnPreferenceChanged;
             this.databaseAccountCache = new AsyncCache<string, AccountProperties>(enableAsyncCacheExceptionNoSharing);
+            this.configurationManager = configurationManager;
 
 #if !(NETSTANDARD15 || NETSTANDARD16)
 #if NETSTANDARD20
@@ -598,7 +602,7 @@ namespace Microsoft.Azure.Cosmos.Routing
                 return;
             }
 
-            bool isPPafEnabled = ConfigurationManager.IsPartitionLevelFailoverEnabled(defaultValue: false);
+            bool isPPafEnabled = this.configurationManager.IsPartitionLevelFailoverEnabled(defaultValue: false);
             if (databaseAccount.EnablePartitionLevelFailover.HasValue)
             {
                 isPPafEnabled = databaseAccount.EnablePartitionLevelFailover.Value;

@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Cosmos
     using Microsoft.Azure.Cosmos.Query.Core;
     using Microsoft.Azure.Cosmos.Query.Core.QueryPlan;
     using Microsoft.Azure.Cosmos.Scripts;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
 
     /// <summary>
@@ -26,12 +27,16 @@ namespace Microsoft.Azure.Cosmos
 
         private readonly CosmosSerializer customSerializer;
         private readonly CosmosSerializer sqlQuerySpecSerializer;
+        private readonly IClientConfigurationManager configurationManager;
+        
         private CosmosSerializer patchOperationSerializer;
 
         internal CosmosSerializerCore(
+            IClientConfigurationManager configurationManager,
             CosmosSerializer customSerializer = null)
         {
-            this.isBinaryEncodingEnabled = ConfigurationManager.IsBinaryEncodingEnabled();
+            this.configurationManager = configurationManager ?? throw new ArgumentNullException(nameof(configurationManager));
+            this.isBinaryEncodingEnabled = this.configurationManager.IsBinaryEncodingEnabled();
             if (customSerializer == null)
             {
                 this.customSerializer = null;
@@ -55,7 +60,8 @@ namespace Microsoft.Azure.Cosmos
 
         internal static CosmosSerializerCore Create(
             CosmosSerializer customSerializer,
-            CosmosSerializationOptions serializationOptions)
+            CosmosSerializationOptions serializationOptions,
+            IClientConfigurationManager configurationManager)
         {
             if (customSerializer != null && serializationOptions != null)
             {
@@ -70,7 +76,7 @@ namespace Microsoft.Azure.Cosmos
                         binaryEncodingEnabled: ConfigurationManager.IsBinaryEncodingEnabled()));
             }
 
-            return new CosmosSerializerCore(customSerializer);
+            return new CosmosSerializerCore(configurationManager, customSerializer);
         }
 
         internal T FromStream<T>(Stream stream)

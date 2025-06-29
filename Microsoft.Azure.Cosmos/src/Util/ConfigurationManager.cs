@@ -64,37 +64,6 @@ namespace Microsoft.Azure.Cosmos
         }
 
         /// <summary>
-        /// Gets the boolean value of the partition level failover environment variable. Note that, partition level failover
-        /// is disabled by default for both preview and GA releases. The user can set the  respective environment variable
-        /// 'AZURE_COSMOS_PARTITION_LEVEL_FAILOVER_ENABLED' to override the value for both preview and GA. The method will
-        /// eventually be removed, once partition level failover is enabled by default for  both preview and GA.
-        /// </summary>
-        /// <param name="defaultValue">A boolean field containing the default value for partition level failover.</param>
-        /// <returns>A boolean flag indicating if partition level failover is enabled.</returns>
-        public static bool IsPartitionLevelFailoverEnabled(
-            bool defaultValue)
-        {
-            return ConfigurationManager
-                    .GetEnvironmentVariable(
-                        variable: ConfigurationKeys.PartitionLevelFailoverEnabled,
-                        defaultValue: defaultValue);
-        }
-
-        /// <summary>
-        /// Gets the boolean value indicating whether the thin client mode is enabled based on the environment variable override.
-        /// </summary>
-        /// <param name="defaultValue">A boolean field containing the default value for thin client mode.</param>
-        /// <returns>A boolean flag indicating if thin client mode is enabled.</returns>
-        public static bool IsThinClientEnabled(
-            bool defaultValue)
-        {
-            return ConfigurationManager
-                    .GetEnvironmentVariable(
-                        variable: ConfigurationKeys.ThinClientModeEnabled,
-                        defaultValue: defaultValue);
-        }
-
-        /// <summary>
         /// Gets the boolean value of the partition level circuit breaker environment variable. Note that, partition level
         /// circuit breaker is disabled by default for both preview and GA releases. The user can set the respective
         /// environment variable 'AZURE_COSMOS_PARTITION_LEVEL_CIRCUIT_BREAKER_ENABLED' to override the value for both preview and GA.
@@ -211,22 +180,6 @@ namespace Microsoft.Azure.Cosmos
             return ConfigurationManager
                     .GetEnvironmentVariable(
                         variable: ConfigurationKeys.DistributedQueryGatewayModeEnabled,
-                        defaultValue: defaultValue);
-        }
-
-        /// <summary>
-        /// Gets the boolean value indicating if binary encoding is enabled based on the environment variable override.
-        /// Note that binary encoding is disabled by default for both preview and GA releases. The user can set the
-        /// respective environment variable 'AZURE_COSMOS_BINARY_ENCODING_ENABLED' to override the value for both preview and GA.
-        /// This method will eventually be removed once binary encoding is enabled by default for both preview and GA.
-        /// </summary>
-        /// <returns>A boolean flag indicating if binary encoding is enabled.</returns>
-        public static bool IsBinaryEncodingEnabled()
-        {
-            bool defaultValue = false;
-            return ConfigurationManager
-                    .GetEnvironmentVariable(
-                        variable: ConfigurationKeys.BinaryEncodingEnabled,
                         defaultValue: defaultValue);
         }
 

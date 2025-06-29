@@ -143,7 +143,8 @@ namespace Microsoft.Azure.Cosmos
 
             CosmosSerializerCore serializerCore = CosmosSerializerCore.Create(
                 clientOptions.Serializer,
-                clientOptions.SerializerOptions);
+                clientOptions.SerializerOptions,
+                clientConfigurationManager);
 
             // This sets the serializer on client options which gives users access to it if a custom one is not configured.
             clientOptions.SetSerializerIfNotConfigured(serializerCore.GetCustomOrDefaultSerializer());
