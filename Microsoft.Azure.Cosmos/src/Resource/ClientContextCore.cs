@@ -20,6 +20,7 @@ namespace Microsoft.Azure.Cosmos
     using Microsoft.Azure.Cosmos.Telemetry;
     using Microsoft.Azure.Cosmos.Telemetry.OpenTelemetry;
     using Microsoft.Azure.Cosmos.Tracing;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
 
     internal class ClientContextCore : CosmosClientContext
@@ -31,6 +32,7 @@ namespace Microsoft.Azure.Cosmos
         private readonly CosmosResponseFactoryInternal responseFactory;
         private readonly RequestInvokerHandler requestHandler;
         private readonly CosmosClientOptions clientOptions;
+        private readonly ClientConfigurationManager clientConfigurationManager;
 
         private readonly string userAgent;
         private bool isDisposed = false;
@@ -43,7 +45,8 @@ namespace Microsoft.Azure.Cosmos
             RequestInvokerHandler requestHandler,
             DocumentClient documentClient,
             string userAgent,
-            BatchAsyncContainerExecutorCache batchExecutorCache)
+            BatchAsyncContainerExecutorCache batchExecutorCache,
+            ClientConfigurationManager clientConfigurationManager)
         {
             this.client = client;
             this.clientOptions = clientOptions;
@@ -53,11 +56,13 @@ namespace Microsoft.Azure.Cosmos
             this.documentClient = documentClient;
             this.userAgent = userAgent;
             this.batchExecutorCache = batchExecutorCache;
+            this.clientConfigurationManager = clientConfigurationManager;
         }
 
         internal static CosmosClientContext Create(
             CosmosClient cosmosClient,
-            CosmosClientOptions clientOptions)
+            CosmosClientOptions clientOptions,
+            ClientConfigurationManager clientConfigurationManager = null)
         {
             if (cosmosClient == null)
             {
@@ -69,6 +74,8 @@ namespace Microsoft.Azure.Cosmos
                 clientOptions.GatewayModeMaxConnectionLimit,
                 clientOptions.WebProxy,
                 clientOptions.GetServerCertificateCustomValidationCallback());
+
+            clientConfigurationManager ??= new ClientConfigurationManager();
 
             DocumentClient documentClient = new DocumentClient(
                cosmosClient.Endpoint,
@@ -86,12 +93,14 @@ namespace Microsoft.Azure.Cosmos
                remoteCertificateValidationCallback: ClientContextCore.SslCustomValidationCallBack(clientOptions.GetServerCertificateCustomValidationCallback()),
                cosmosClientTelemetryOptions: clientOptions.CosmosClientTelemetryOptions,
                chaosInterceptorFactory: clientOptions.ChaosInterceptorFactory,
-               enableAsyncCacheExceptionNoSharing: clientOptions.EnableAsyncCacheExceptionNoSharing);
+               enableAsyncCacheExceptionNoSharing: clientOptions.EnableAsyncCacheExceptionNoSharing,
+               clientConfigurationManager: clientConfigurationManager);
 
             return ClientContextCore.Create(
-                cosmosClient,
-                documentClient,
-                clientOptions);
+                cosmosClient: cosmosClient,
+                documentClient: documentClient,
+                clientOptions: clientOptions,
+                clientConfigurationManager: clientConfigurationManager);
         }
 
         private static RemoteCertificateValidationCallback SslCustomValidationCallBack(Func<X509Certificate2, X509Chain, SslPolicyErrors, bool> serverCertificateCustomValidationCallback)
@@ -103,7 +112,8 @@ namespace Microsoft.Azure.Cosmos
             CosmosClient cosmosClient,
             DocumentClient documentClient,
             CosmosClientOptions clientOptions,
-            RequestInvokerHandler requestInvokerHandler = null)
+            RequestInvokerHandler requestInvokerHandler = null,
+            ClientConfigurationManager clientConfigurationManager = null)
         {
             if (cosmosClient == null)
             {
@@ -133,7 +143,8 @@ namespace Microsoft.Azure.Cosmos
 
             CosmosSerializerCore serializerCore = CosmosSerializerCore.Create(
                 clientOptions.Serializer,
-                clientOptions.SerializerOptions);
+                clientOptions.SerializerOptions,
+                clientConfigurationManager);
 
             // This sets the serializer on client options which gives users access to it if a custom one is not configured.
             clientOptions.SetSerializerIfNotConfigured(serializerCore.GetCustomOrDefaultSerializer());
@@ -148,7 +159,8 @@ namespace Microsoft.Azure.Cosmos
                 requestHandler: requestInvokerHandler,
                 documentClient: documentClient,
                 userAgent: documentClient.ConnectionPolicy.UserAgentContainer.UserAgent,
-                batchExecutorCache: new BatchAsyncContainerExecutorCache());
+                batchExecutorCache: new BatchAsyncContainerExecutorCache(),
+                clientConfigurationManager: clientConfigurationManager ?? new ClientConfigurationManager());
         }
 
         /// <summary>
@@ -165,6 +177,8 @@ namespace Microsoft.Azure.Cosmos
         internal override RequestInvokerHandler RequestHandler => this.ThrowIfDisposed(this.requestHandler);
 
         internal override CosmosClientOptions ClientOptions => this.ThrowIfDisposed(this.clientOptions);
+
+        internal override ClientConfigurationManager ClientConfigurationManager => this.ThrowIfDisposed(this.clientConfigurationManager);
 
         internal override string UserAgent => this.ThrowIfDisposed(this.userAgent);
 

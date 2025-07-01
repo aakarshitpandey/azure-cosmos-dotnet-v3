@@ -26,6 +26,7 @@ namespace Microsoft.Azure.Cosmos
     using Microsoft.Azure.Cosmos.Telemetry;
     using Microsoft.Azure.Cosmos.Tracing;
     using Microsoft.Azure.Cosmos.Tracing.TraceData;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Collections;
@@ -192,6 +193,9 @@ namespace Microsoft.Azure.Cosmos
         //Distributed Tracing Flag
         internal CosmosClientTelemetryOptions cosmosClientTelemetryOptions;
 
+        //ClientConfigurationManager. Gets the environment variables / other environment specific configurations for the account.
+        internal IClientConfigurationManager clientConfigurationManager;
+
         //SessionContainer.
         internal ISessionContainer sessionContainer;
 
@@ -218,6 +222,9 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="authKey">
         /// The list of Permission objects to use to create the client.
         /// </param>
+        /// <param name="clientConfigurationManager">
+        /// Configuration manager for the client.
+        /// </param>
         /// <param name="connectionPolicy">
         /// (Optional) The connection policy for the client. If none is passed, the default is used <see cref="ConnectionPolicy"/>
         /// </param>
@@ -239,7 +246,8 @@ namespace Microsoft.Azure.Cosmos
         public DocumentClient(Uri serviceEndpoint,
                               SecureString authKey,
                               ConnectionPolicy connectionPolicy = null,
-                              Documents.ConsistencyLevel? desiredConsistencyLevel = null)
+                              Documents.ConsistencyLevel? desiredConsistencyLevel = null,
+                              ClientConfigurationManager clientConfigurationManager = null)
         {
             if (authKey == null)
             {
@@ -251,12 +259,13 @@ namespace Microsoft.Azure.Cosmos
                 this.cosmosAuthorization = new AuthorizationTokenProviderMasterKey(authKey);
             }
 
+            this.clientConfigurationManager = clientConfigurationManager ?? new ClientConfigurationManager();
             this.Initialize(serviceEndpoint, connectionPolicy, desiredConsistencyLevel);
             this.initTaskCache = new AsyncCacheNonBlocking<string, bool>(
                 cancellationToken: this.cancellationTokenSource.Token,
                 enableAsyncCacheExceptionNoSharing: this.enableAsyncCacheExceptionNoSharing);
-            this.isReplicaAddressValidationEnabled = ConfigurationManager.IsReplicaAddressValidationEnabled(connectionPolicy);
-            this.isThinClientEnabled = ConfigurationManager.IsThinClientEnabled(defaultValue: false);
+            this.isReplicaAddressValidationEnabled = clientConfigurationManager.IsReplicaAddressValidationEnabled(connectionPolicy);
+            this.isThinClientEnabled = clientConfigurationManager.IsThinClientEnabled(defaultValue: false);
         }
 
         /// <summary>
@@ -441,6 +450,7 @@ namespace Microsoft.Azure.Cosmos
         /// <param name="serviceEndpoint">The service endpoint to use to create the client.</param>
         /// <param name="cosmosAuthorization">The cosmos authorization for the client.</param>
         /// <param name="sendingRequestEventArgs"> The event handler to be invoked before the request is sent.</param>
+        /// <param name="clientConfigurationManager">Configuration manager for the client.</param>
         /// <param name="receivedResponseEventArgs"> The event handler to be invoked after a response has been received.</param>
         /// <param name="connectionPolicy">(Optional) The connection policy for the client.</param>
         /// <param name="desiredConsistencyLevel">(Optional) The default consistency policy for client operations.</param>
@@ -471,6 +481,7 @@ namespace Microsoft.Azure.Cosmos
         internal DocumentClient(Uri serviceEndpoint,
                               AuthorizationTokenProvider cosmosAuthorization,
                               EventHandler<SendingRequestEventArgs> sendingRequestEventArgs,
+                              IClientConfigurationManager clientConfigurationManager,
                               ConnectionPolicy connectionPolicy = null,
                               Documents.ConsistencyLevel? desiredConsistencyLevel = null,
                               JsonSerializerSettings serializerSettings = null,
@@ -505,6 +516,7 @@ namespace Microsoft.Azure.Cosmos
                 this.receivedResponse += receivedResponseEventArgs;
             }
 
+            this.clientConfigurationManager = clientConfigurationManager ?? new ClientConfigurationManager();
             this.enableAsyncCacheExceptionNoSharing = enableAsyncCacheExceptionNoSharing;
             this.cosmosAuthorization = cosmosAuthorization ?? throw new ArgumentNullException(nameof(cosmosAuthorization));
             this.transportClientHandlerFactory = transportClientHandlerFactory;
@@ -514,7 +526,7 @@ namespace Microsoft.Azure.Cosmos
                 enableAsyncCacheExceptionNoSharing: this.enableAsyncCacheExceptionNoSharing);
             this.chaosInterceptorFactory = chaosInterceptorFactory;
             this.chaosInterceptor = chaosInterceptorFactory?.CreateInterceptor(this);
-            this.isThinClientEnabled = ConfigurationManager.IsThinClientEnabled(defaultValue: false);
+            this.isThinClientEnabled = clientConfigurationManager.IsThinClientEnabled(defaultValue: false);
 
             this.Initialize(
                 serviceEndpoint: serviceEndpoint,
@@ -961,7 +973,7 @@ namespace Microsoft.Azure.Cosmos
                 servicePoint.ConnectionLimit = this.ConnectionPolicy.MaxConnectionLimit;
             }
 #endif
-            this.GlobalEndpointManager = new GlobalEndpointManager(this, this.ConnectionPolicy, this.enableAsyncCacheExceptionNoSharing);
+            this.GlobalEndpointManager = new GlobalEndpointManager(this, this.ConnectionPolicy, this.clientConfigurationManager, this.enableAsyncCacheExceptionNoSharing);
 
             this.httpClient = CosmosHttpClientCore.CreateWithConnectionPolicy(
                 this.ApiType,
@@ -1056,7 +1068,7 @@ namespace Microsoft.Azure.Cosmos
                 this.EnsureValidOverwrite(this.desiredConsistencyLevel.Value);
             }
 
-            bool isPPafEnabled = ConfigurationManager.IsPartitionLevelFailoverEnabled(defaultValue: false);
+            bool isPPafEnabled = this.clientConfigurationManager.IsPartitionLevelFailoverEnabled(defaultValue: false);
             if (this.accountServiceConfiguration != null && this.accountServiceConfiguration.AccountProperties.EnablePartitionLevelFailover.HasValue)
             {
                 isPPafEnabled = this.accountServiceConfiguration.AccountProperties.EnablePartitionLevelFailover.Value;

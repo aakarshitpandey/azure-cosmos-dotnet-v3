@@ -15,6 +15,7 @@ namespace Microsoft.Azure.Cosmos.Handlers
     using Microsoft.Azure.Cosmos.Diagnostics;
     using Microsoft.Azure.Cosmos.Routing;
     using Microsoft.Azure.Cosmos.Tracing;
+    using Microsoft.Azure.Cosmos.Util;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Routing;
 
@@ -32,6 +33,7 @@ namespace Microsoft.Azure.Cosmos.Handlers
         private readonly Cosmos.PriorityLevel? RequestedClientPriorityLevel;
         private readonly int? RequestedClientThroughputBucket;
 
+        private IClientConfigurationManager configurationManager => this.client.ClientContext.ClientConfigurationManager;
         private bool? IsLocalQuorumConsistency;
         private Cosmos.ConsistencyLevel? AccountConsistencyLevel = null;
 
@@ -71,7 +73,7 @@ namespace Microsoft.Azure.Cosmos.Handlers
                 request.Headers.Add(HttpConstants.HttpHeaders.Prefer, HttpConstants.HttpHeaderValues.PreferReturnMinimal);
             }
 
-            if (ConfigurationManager.IsBinaryEncodingEnabled()
+            if (this.configurationManager.IsBinaryEncodingEnabled()
                 && RequestInvokerHandler.IsPointOperationSupportedForBinaryEncoding(request))
             {
                 request.Headers.Add(HttpConstants.HttpHeaders.SupportedSerializationFormats, RequestInvokerHandler.BinarySerializationFormat);
@@ -105,7 +107,7 @@ namespace Microsoft.Azure.Cosmos.Handlers
                 ((CosmosTraceDiagnostics)response.Diagnostics).Value.AddOrUpdateDatum("ExcludedRegions", request.RequestOptions.ExcludeRegions);
             }
 
-            if (ConfigurationManager.IsBinaryEncodingEnabled()
+            if (this.configurationManager.IsBinaryEncodingEnabled()
                 && RequestInvokerHandler.IsPointOperationSupportedForBinaryEncoding(request)
                 && response.Content != null
                 && response.Content is not CloneableStream)
